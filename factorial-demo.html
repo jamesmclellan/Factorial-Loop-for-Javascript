@@ -1,0 +1,82 @@
+<html>
+   <head>
+   </head>
+   <body>
+   <h1>Javascript FactorialLoop() Method</h1>
+   <p>A library for javascript.</p>
+   <hr>
+   <h2>Definition and Usage</h2>
+   <p>A mechanism to re-entrantly call a user-defined function N! times.</p>
+   
+   <!-- Syntax -->
+   <h2>Syntax</h2>
+    <table style="outline:1px solid #d4d4d4; border:5px solid #e5eecc;" cellspacing="0" cellpadding="0" border="0" width="100%">   
+     <tr>
+	   <td style="font-size:110%; font-family:courier new; background-color:#FFFFFF; border:1px solid #d4d4d4; padding:4px;">
+       FactorialLoop(depth, returnObject);
+	   </td>
+     <tr>
+   </table>
+   
+   <!-- Parameter Table -->
+   <table style="background-color:#ffffff; border:1px solid #c3c3c3; border-collapse:collapse;" cellspacing="0" cellpadding="0" border="1" width="100%"> 
+     <tr>
+       <th style="background-color:#e5eecc; border:1px solid #c3c3c3; padding:3px; vertical-align:top;"align="left" width="20%">Parameter</th>
+       <th style="background-color:#e5eecc; border:1px solid #c3c3c3; padding:3px; vertical-align:top;" align="left" width="80%">Description</th>  </tr>  
+     <tr>
+	 <tr>
+	   <td style="border:1px solid #c3c3c3; padding:3px; vertical-align:top;">depth</td>
+	   <td style="border:1px solid #c3c3c3; padding:3px; vertical-align:top;">number of times loop is to re-enter (ex. depth = 3 : outer loop will run 0..2, middle loop 0..1, inner loop 0).</td>
+	 </tr>
+	 <tr>
+	   <td style="border:1px solid #c3c3c3; padding:3px; vertical-align:top;">returnObject</td>
+	   <td style="border:1px solid #c3c3c3; padding:3px; vertical-align:top;">an instance of the ReEntrantWrapper class, which holds the method to execute and the return values.</td>
+	 </tr>	 
+   </table>
+
+   
+   <!-- Example -->
+   <h2>Example</h2>
+   In the example below, I am using the factorial loop to find possible re-combinations of multiplication terms in an equation. MakeEquivalents() is my user-defined function, that is attached to the new ReEntrantWrapper() object prior to execution. The argument to my user-defined function, MakeEquivalents, is an indexArray. This array is bounds (0..N), where N is the value that I pass as the depth parameter to FactorialLoop(). indexArray contains the current indices of the current loop.
+   <table style="outline:1px solid #d4d4d4; border:5px solid #e5eecc;" cellspacing="0" cellpadding="0" border="0" width="100%">   
+     <tr>
+	   <td style="font-size:110%; font-family:courier new; background-color:#FFFFFF; border:1px solid #d4d4d4; padding:4px;">
+	   var makeEquivalents = new ReEntrantWrapper;<br>
+	   makeEquivalents.functionToCall = MakeEquivalents;<br>
+	   makeEquivalents.terms = UnrelateTerms(termInput.terms);<br>
+	   makeEquivalents.returnArray = [];<br>
+	   <br>
+	   FactorialLoop(termInput.terms.length, makeEquivalents);<br>
+	   <br>
+	   returnArray = makeEquivalents.returnArray;<br>
+	   </td>
+     </tr>
+	 <tr>
+        <td style="font-size:110%; font-family:courier new; background-color:#FFFFFF; border:1px solid #d4d4d4; padding:4px;">	 
+		function MakeEquivalents( indexArray )<br>
+		{<br>
+		   // This function is an object intended to be passed into a factorial loop and evaluated<br>
+		   //   within that loop. It uses externally-set variables for data and return.<br>
+		   var tempArray = [];<br>
+		   var tempString = "";<br>
+		   <br>
+		   //alert("MakeEquivalents called with the following indices " + PrintArray(indexArray));<br>
+		   <br>
+		   for (var i = 0; i < indexArray.length; i++)<br>
+		   {<br>
+			   // :NOTE: "terms" is an attribute generated outside this function and attached to the ReEntrantWrapper object before calling FactorialLoop()<br>
+			   tempArray.push( this.terms[indexArray[i]] );  <br>
+		   }<br>
+	 <br>
+		   //alert("About to unparse terms array " + PrintCTermArray(tempArray));<br>
+		   tempString = UnparseUnrelatedTerms(tempArray);<br>
+		   <br>
+		   // :NOTE: "returnArray" is an attribute generated outside this function and attached to the ReEntrantWrapper object before calling FactorialLoop()<br>
+		   this.returnArray.push( tempString );<br>
+		}		<br>
+		</td>
+	 </tr>
+   </table>
+
+   </body>
+</html>
