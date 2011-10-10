@@ -1,0 +1,213 @@
+<html>
+   <head>
+		<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+		</script>
+		<script type="text/javascript">
+		_uacct = "UA-2096316-2";
+//		urchinTracker();
+		</script>
+        
+		<script type="text/javascript" src="factorialloop.js"></script> 
+        <script type="text/javascript">
+		
+		   var xmlDoc;
+		   var dictionary = [];
+		   
+		   function InitializeDictionary()
+		   {
+		      var chars = "abcdefghijklmnopqrstuvwxyz0123456789".split("");
+		      for (i = 0; i < chars.length; i++ )
+			  {
+			     dictionary[chars[i]] = [];
+			  }
+		   }
+			
+		   function LoadDictionaryXml()
+		   {
+		       // do not use full path if you want this to work on chrome
+			   var path = "words2011-3.xml";
+			   
+			   //netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect UniversalPreferencesRead UniversalPreferencesWrite'); 
+			   
+			   //xmlDoc = document.implementation.createDocument("","",null);
+			   //xmlDoc.load(path);
+			   //xmlDoc.onload = onLoadedDictionaryXml;
+			   
+				if (window.XMLHttpRequest) 
+				{
+					req = new XMLHttpRequest();
+					req.onreadystatechange = processReqChange;
+					req.open("GET", path, true);
+					req.send(null);
+				// branch for IE/Windows ActiveX version
+				} 
+				else if (window.ActiveXObject) 
+				{
+					req = new ActiveXObject("Microsoft.XMLHTTP");
+					if (req) {
+						req.onreadystatechange = processReqChange;
+						req.open("GET", path, true);
+						req.send();
+					}
+				}		   
+		   }	
+
+			function processReqChange() 
+			{
+			    var usefilterId = document.getElementById("usefilter");
+				
+				// only if req shows "complete"
+				if (req.readyState == 4) {
+					// only if "OK"
+					if (req.status == 200) {
+					    if (window.XMLHttpRequest) 
+						{
+					       xmlDoc = req.responseXML.documentElement;
+						}
+						else if (window.ActiveXObject)
+						{
+						   xmlDoc = req.responseXML.xml;
+						}
+						
+						var tpRef = xmlDoc.getElementsByTagName("hw");
+						if (tpRef[0].textContent) // Do not load the dictionary in IE - IE is too slow to do the job well
+						{
+						   onLoadedDictionaryXml();
+						   usefilterId.disabled = false;
+						}
+						else
+						{
+						   usefilterId.disabled = true;
+						   usefilterId.checked = false;
+						}
+					} else {
+						alert("There was a problem retrieving the XML data:\n" + req.statusText);
+					}
+				}
+			}		   
+		   
+		   function onLoadedDictionaryXml()
+		   {
+			   InitializeDictionary();
+			   
+			   // get the "hw" nodes
+			   var tpRef = xmlDoc.getElementsByTagName("hw");
+			   var word = "";
+			   var firstChar = [];
+			   for(i = 0; i < tpRef.length; i++)
+			   {
+			      if (tpRef[i].textContent) 
+				  {
+			        word = tpRef[i].textContent; // FireFox, Chrome
+				  }
+				  else if (tpRef[i].text)
+				  {
+				    word = tpRef[i].text; // Internet Explorer
+				  }
+				  word = word.toLowerCase();
+				  firstChar = word.split("")[0];
+				  if ((firstChar == undefined) || (dictionary[firstChar] == undefined))
+				  {
+				     alert("undefined");
+				  }
+				  else
+				  {
+				     dictionary[firstChar].push(word);
+				  }
+			   }
+		   }
+			
+			function LookForWord(inputValue)
+			{
+			   var returnValue = false;
+			   var firstChar = inputValue.split("")[0];
+			   
+			   for (i = 0; i < dictionary[firstChar].length; i++)
+			   {
+			      if (dictionary[firstChar][i] == inputValue)
+				  {
+				    returnValue = true;
+					return(returnValue);
+				  }
+			   }
+			   
+			   return(returnValue);
+			}
+			
+			function MakeAnagrams()
+			{
+			   var inputId = document.getElementById("inputbox");
+			   var outputId = document.getElementById("outdiv");
+			   var usefilterId = document.getElementById("usefilter");
+			   
+			   outputId.innerHTML = "";
+			   
+			   // This function is a wrapper for the factorial loop.
+			   // It instances an evaluation function, sets the data and return attributes on that function object
+			   //    and then starts the factorial loop
+			   var returnArray = [];
+			   var makeEquivalents = new ReEntrantWrapper;
+			   var inputValue = "";
+			   makeEquivalents.functionToCall = MakeEquivalents;
+			   inputValue = inputId.value.toLowerCase();
+			   makeEquivalents.chars = inputValue.split("");
+			   makeEquivalents.returnArray = [];
+			   
+			   FactorialLoop(makeEquivalents.chars.length, makeEquivalents)
+			   
+			   returnArray = makeEquivalents.returnArray;
+			   
+			   for (var i = 0; i < returnArray.length; i++)
+			   {
+			      if (returnArray[i].length > 0)
+				  {
+				     var word = returnArray[i].join("");
+					 if (usefilterId.checked)
+					 {
+					    var foundWord = LookForWord(word);
+						if (foundWord)
+						{
+						   outputId.innerHTML += word + "<br>";
+						}
+					 }
+					 else
+					 {
+			            outputId.innerHTML += word + "<br>";
+					 }
+				  }
+			   }
+			}	
+			
+			////////////////////////////////////////////////////////////////////////////////////
+			
+			function MakeEquivalents( indexArray )
+			{
+			   // This function is an object intended to be passed into a factorial loop and evaluated
+			   //   within that loop. It uses externally-set variables for data and return.
+			   var tempArray = [];
+			   var tempString = "";
+
+			   
+			   for (var i = 0; i < indexArray.length; i++)
+			   {
+				   tempArray.push( this.chars[indexArray[i]] );  
+			   }
+			   
+			   // :NOTE: "returnArray" is an attribute generated outside this function
+			   this.returnArray.push( tempArray );
+			}		   
+        </script>		
+   </head>
+   <body onload="LoadDictionaryXml()">
+     <h1>Anagram Generator</h1>
+	 <!-- <input type="button" value="Load Dictionary" onclick="LoadDictionaryXml()"></input> -->
+	 <p>Generate your own anagrams by placing a word or words in the box below and clicking the "make" button. Anagrams will appear below the button.</p>
+	 <input type="text" id="inputbox" value=""></input>
+	 <input type="button" value="Make" onclick="MakeAnagrams()"></input>
+	 <br>
+	 <input type="checkbox" id="usefilter" value=""></input>Only Display Dictionary Words
+	 <br>
+	 <p>Anagrams are generated using the <a href="https://github.com/jamesmclellan/Factorial-Loop-for-Javascript">FactorialLoop</a> library for javascript. Dictionary filtering does not work in Internet Explorer - please try viewing this page in FireFox or Chrome to use this feature.</p>
+	 <div id="outdiv"></div>
+   </body>
+</html>
